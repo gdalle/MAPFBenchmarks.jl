@@ -1,3 +1,4 @@
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 MAPFBenchmarks = "f6a554f6-e8b4-4504-9196-3f314785491a"
+MultiAgentPathFinding = "1f5aa91a-953b-4f4c-bed6-d21f3af349fa"
