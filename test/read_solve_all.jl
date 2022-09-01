@@ -13,7 +13,10 @@ for map_file in readdir(map_dir)
     instance = replace(map_file, r".map$" => "")
     map_path = joinpath(map_dir, map_file)
     @showprogress "Instance $instance" for scen_id in 1:25
-        scen_random_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
-        mapf_random = read_benchmark_mapf(map_path, scen_random_path; nb_agents=1000)
+        scen_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
+        full_mapf = read_benchmark_mapf(map_path, scen_path)
+        for A in 10:10:1000
+            mapf = select_agents(full_mapf, A)
+        end
     end
 end
