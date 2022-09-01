@@ -1,5 +1,3 @@
-
-
 """
     read_benchmark_map(map_path)
 """
