@@ -1,28 +1,30 @@
 """
-    read_benchmark_map(map_path)
+    read_benchmark_terrain(terrain_path)
 """
-function read_benchmark_map(map_path::AbstractString)
-    lines = open(map_path, "r") do file
+function read_benchmark_terrain(terrain_path::AbstractString)
+    lines = open(terrain_path, "r") do file
         readlines(file)
     end
     height_line = split(lines[2])
     height = parse(Int, height_line[2])
     width_line = split(lines[3])
     width = parse(Int, width_line[2])
-    map_matrix = Matrix{Char}(undef, height, width)
+    terrain = Matrix{Char}(undef, height, width)
     for i in 1:height
         line = lines[4 + i]
         for j in 1:width
-            map_matrix[i, j] = line[j]
+            terrain[i, j] = line[j]
         end
     end
-    return map_matrix
+    return terrain
 end
 
 """
-    read_benchmark_scenario(scenario_path, map_path)
+    read_benchmark_scenario(scenario_path, terrain_path)
 """
-function read_benchmark_scenario(scenario_path::AbstractString, map_path::AbstractString)
+function read_benchmark_scenario(
+    scenario_path::AbstractString, terrain_path::AbstractString
+)
     lines = open(scenario_path, "r") do file
         readlines(file)
     end
@@ -38,7 +40,7 @@ function read_benchmark_scenario(scenario_path::AbstractString, map_path::Abstra
         goal_x = parse(Int, line_split[7])
         goal_y = parse(Int, line_split[8])
         optimal_length = parse(Float64, line_split[9])
-        @assert endswith(map_path, map)
+        @assert endswith(terrain_path, map)
         start_i = start_y + 1
         start_j = start_x + 1
         goal_i = goal_y + 1
@@ -60,9 +62,8 @@ function read_benchmark_scenario(scenario_path::AbstractString, map_path::Abstra
     return scenario
 end
 
-
-function read_benchmark_mapf(map_path::AbstractString, scenario_path::AbstractString)
-    map_matrix = read_benchmark_map(map_path)
-    scenario = read_benchmark_scenario(scenario_path, map_path)
-    return benchmark_mapf(map_matrix, scenario)
+function read_benchmark_mapf(terrain_path::AbstractString, scenario_path::AbstractString)
+    terrain = read_benchmark_terrain(terrain_path)
+    scenario = read_benchmark_scenario(scenario_path, terrain_path)
+    return benchmark_mapf(terrain, scenario)
 end

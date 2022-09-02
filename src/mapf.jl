@@ -1,23 +1,31 @@
-
-function benchmark_mapf(map_matrix::Matrix{Char}, scenario::Vector{MAPFBenchmarkProblem})
-    # Create graph
-    active = active_cell.(map_matrix)
+function empty_benchmark_mapf(terrain::Matrix{Char})
+    active = active_cell.(terrain)
     weights = Ones{Float64}(size(active))
     g = GridGraph{Int}(weights, active, GridGraphs.all_directions, true)
-    # Add sources and destinations
     departures, arrivals = Int[], Int[]
-    for a in 1:length(scenario)
+    mapf = MAPF(g, departures, arrivals)
+    return mapf
+end
+
+function add_benchmark_agents(mapf::MAPF, scenario::Vector{MAPFBenchmarkProblem})
+    A = length(scenario)
+    departures = Vector{Int}(undef, A)
+    arrivals = Vector{Int}(undef, A)
+    for a in 1:A
         problem = scenario[a]
         is, js = problem.start_i, problem.start_j
         id, jd = problem.goal_i, problem.goal_j
-        s = GridGraphs.coord_to_index(g, is, js)
-        d = GridGraphs.coord_to_index(g, id, jd)
-        @assert GridGraphs.active_vertex(g, s)
-        @assert GridGraphs.active_vertex(g, d)
-        push!(departures, s)
-        push!(arrivals, d)
+        s = GridGraphs.coord_to_index(mapf.g, is, js)
+        d = GridGraphs.coord_to_index(mapf.g, id, jd)
+        departures[a] = s
+        arrivals[a] = d
     end
-    # Create MAPF
-    mapf = MAPF(g, departures, arrivals)
+    departure_times = fill(1, A)
+    return replace_agents(mapf, departures, arrivals, departure_times)
+end
+
+function benchmark_mapf(terrain, scenario)
+    empty_mapf = empty_benchmark_mapf(terrain)
+    mapf = add_benchmark_agents(empty_mapf, scenario)
     return mapf
 end
