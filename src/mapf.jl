@@ -1,9 +1,9 @@
-function empty_benchmark_mapf(terrain::Matrix{Char})
+function empty_benchmark_mapf(terrain::Matrix{Char}; stay_at_arrival)
     active = active_cell.(terrain)
     weights = Ones{Float64}(size(active))
     g = GridGraph{Int}(weights, active, GridGraphs.all_directions, true)
     departures, arrivals = Int[], Int[]
-    mapf = MAPF(g, departures, arrivals)
+    mapf = MAPF(g, departures, arrivals; stay_at_arrival=stay_at_arrival)
     return mapf
 end
 
@@ -20,12 +20,14 @@ function add_benchmark_agents(mapf::MAPF, scenario::Vector{MAPFBenchmarkProblem}
         departures[a] = s
         arrivals[a] = d
     end
+    @assert length(unique(departures)) == length(departures)
+    @assert length(unique(arrivals)) == length(arrivals)
     departure_times = fill(1, A)
     return replace_agents(mapf, departures, arrivals, departure_times)
 end
 
-function benchmark_mapf(terrain, scenario)
-    empty_mapf = empty_benchmark_mapf(terrain)
+function benchmark_mapf(terrain, scenario; stay_at_arrival)
+    empty_mapf = empty_benchmark_mapf(terrain; stay_at_arrival=stay_at_arrival)
     mapf = add_benchmark_agents(empty_mapf, scenario)
     return mapf
 end

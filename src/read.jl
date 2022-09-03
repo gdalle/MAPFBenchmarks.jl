@@ -62,8 +62,10 @@ function read_benchmark_scenario(
     return scenario
 end
 
-function read_benchmark_mapf(terrain_path::AbstractString, scenario_path::AbstractString)
+function read_benchmark_mapf(
+    terrain_path::AbstractString, scenario_path::AbstractString; stay_at_arrival
+)
     terrain = read_benchmark_terrain(terrain_path)
     scenario = read_benchmark_scenario(scenario_path, terrain_path)
-    return benchmark_mapf(terrain, scenario)
+    return benchmark_mapf(terrain, scenario; stay_at_arrival=stay_at_arrival)
 end
