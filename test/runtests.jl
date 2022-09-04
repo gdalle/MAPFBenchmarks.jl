@@ -1,5 +1,6 @@
 using Aqua
 using MAPFBenchmarks
+using MultiAgentPathFinding
 using Test
 
 @testset verbose = true "MAPFBenchmarks.jl" begin

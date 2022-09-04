@@ -20,7 +20,7 @@ scenario = read_benchmark_scenario(scenario_path, terrain_path);
 
 full_mapf = benchmark_mapf(terrain, scenario, stay_at_arrival=false)
 
-mapf = select_agents(full_mapf, 100)
+mapf = select_agents(full_mapf, 200)
 mapf.g
 
 show_progress = true
