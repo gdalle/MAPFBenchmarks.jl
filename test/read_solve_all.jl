@@ -76,11 +76,9 @@ function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, stay_at_arrival,
         empty_mapf = empty_benchmark_mapf(terrain; stay_at_arrival=stay_at_arrival)
 
         contains(instance, "orz900d") && continue
-        instance_folder = joinpath(results_folder, instance)
-        isdir(instance_folder) || mkdir(instance_folder)
 
         @threads for scen_id in 1:S
-            csv_path = joinpath(instance_folder, "$instance-random-$scen_id.csv")
+            csv_path = joinpath(results_folder, "$instance-random-$scen_id.csv")
             ispath(csv_path) && continue
             scenario_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
             scenario = read_benchmark_scenario(scenario_path, terrain_path)
@@ -119,8 +117,8 @@ do_the_stuff(;
         neighborhood_size=10,
         conflict_price=1e-1,
         conflict_price_increase=1e-2,
-        feasibility_max_steps_without_improvement=100,
-        optimality_max_steps_without_improvement=100,
-        show_progress=true,
+        feasibility_max_steps_without_improvement=50,
+        optimality_max_steps_without_improvement=50,
+        show_progress=false,
     ),
 )
