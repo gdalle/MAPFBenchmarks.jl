@@ -25,7 +25,7 @@ function solve_with_stats(mapf::MAPF; params)
         indep_cpu=indep_res.time,
     )
 
-    coop_res = @timed optimality_search(mapf; params...)
+    coop_res = @timed cooperative_astar(mapf; params...)
     coop_solution = coop_res.value
     coop_feasible = is_feasible(coop_solution, mapf)
     coop_flowtime = flowtime(coop_solution, mapf)
