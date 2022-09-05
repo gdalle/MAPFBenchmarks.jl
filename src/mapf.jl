@@ -1,7 +1,9 @@
 function empty_benchmark_mapf(terrain::Matrix{Char}; stay_at_arrival)
     active = active_cell.(terrain)
     weights = Ones{Float64}(size(active))
-    g = GridGraph{Int}(weights, active, GridGraphs.all_directions, true)
+    directions = GridGraphs.rook_directions_plus_center
+    diag_through_corner = false
+    g = GridGraph{Int}(weights, active, directions, diag_through_corner)
     departures, arrivals = Int[], Int[]
     mapf = MAPF(g, departures, arrivals; stay_at_arrival=stay_at_arrival)
     return mapf

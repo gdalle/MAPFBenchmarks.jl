@@ -9,7 +9,7 @@ data_dir = joinpath(@__DIR__, "..", "data")
 terrain_dir = joinpath(data_dir, "mapf-map")
 scen_random_dir = joinpath(data_dir, "mapf-scen-random", "scen-random")
 
-instance = "Boston_0_256"
+instance = "empty-8-8"
 scen_id = 3
 
 terrain_path = joinpath(terrain_dir, "$instance.map")
@@ -18,23 +18,23 @@ scenario_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
 terrain = read_benchmark_terrain(terrain_path);
 scenario = read_benchmark_scenario(scenario_path, terrain_path);
 
-full_mapf = benchmark_mapf(terrain, scenario, stay_at_arrival=false)
+full_mapf = benchmark_mapf(terrain, scenario, stay_at_arrival=true)
 
-mapf = select_agents(full_mapf, 200)
+mapf = select_agents(full_mapf, 20)
 mapf.g
 
 show_progress = true
 sol_indep = independent_dijkstra(mapf; show_progress=show_progress);
-sol_coop = cooperative_astar(mapf; show_progress=show_progress);
-sol_os = optimality_search(mapf; show_progress=show_progress);
-sol_fs = feasibility_search(mapf; show_progress=show_progress);
-sol_ds = double_search(mapf; show_progress=show_progress);
+sol_coop = cooperative_astar_repeated_trials(mapf; max_trials=1000, show_progress=show_progress);
+# sol_os = optimality_search(mapf; show_progress=show_progress);
+# sol_fs = feasibility_search(mapf; show_progress=show_progress);
+# sol_ds = double_search(mapf; show_progress=show_progress);
 
 !is_feasible(sol_indep, mapf)
-is_feasible(sol_coop, mapf)
-is_feasible(sol_os, mapf)
-is_feasible(sol_fs, mapf)
-is_feasible(sol_ds, mapf)
+is_feasible(sol_coop, mapf; verbose=true)
+# is_feasible(sol_os, mapf; verbose=true)
+# is_feasible(sol_fs, mapf; verbose=true)
+# is_feasible(sol_ds, mapf)
 
 f_indep = flowtime(sol_indep, mapf)
 f_coop = flowtime(sol_coop, mapf)

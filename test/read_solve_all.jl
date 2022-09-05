@@ -30,22 +30,14 @@ function solve_with_stats(mapf::MAPF; params)
     coop_feasible = is_feasible(coop_solution, mapf)
     coop_flowtime = flowtime(coop_solution, mapf)
     coop_stats = (
-        coop_feasible=coop_feasible,
-        coop_flowtime=coop_flowtime,
-        coop_gap=(coop_flowtime - indep_flowtime) / indep_flowtime,
-        coop_cpu=coop_res.time,
+        coop_feasible=coop_feasible, coop_flowtime=coop_flowtime, coop_cpu=coop_res.time
     )
 
     opt_res = @timed optimality_search(mapf; params...)
     opt_solution = opt_res.value
     opt_feasible = is_feasible(opt_solution, mapf)
     opt_flowtime = flowtime(opt_solution, mapf)
-    opt_stats = (
-        opt_feasible=opt_feasible,
-        opt_flowtime=opt_flowtime,
-        opt_gap=(opt_flowtime - indep_flowtime) / indep_flowtime,
-        opt_cpu=opt_res.time,
-    )
+    opt_stats = (opt_feasible=opt_feasible, opt_flowtime=opt_flowtime, opt_cpu=opt_res.time)
 
     double_res = @timed double_search(mapf; params...)
     double_solution = double_res.value
@@ -54,7 +46,6 @@ function solve_with_stats(mapf::MAPF; params)
     double_stats = (
         double_feasible=double_feasible,
         double_flowtime=double_flowtime,
-        double_gap=(double_flowtime - indep_flowtime) / indep_flowtime,
         double_cpu=double_res.time,
     )
 
