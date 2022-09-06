@@ -25,8 +25,8 @@ function solve_with_stats(mapf::MAPF; params)
         indep_cpu=indep_res.time,
     )
 
-    coop_res = @timed cooperative_astar(
-        mapf; max_trials=params.coop_max_trials, show_progress=params.show_progress
+    coop_res = @timed repeated_cooperative_astar(
+        mapf; coop_timeout=params.coop_timeout, show_progress=params.show_progress
     )
     coop_solution = coop_res.value
     coop_feasible = is_feasible(coop_solution, mapf)
@@ -37,10 +37,10 @@ function solve_with_stats(mapf::MAPF; params)
 
     opt_res = @timed optimality_search(
         mapf;
-        coop_max_trials=params.coop_max_trials,
+        coop_timeout=params.coop_timeout,
+        optimality_timeout=params.optimality_timeout,
         window=params.window,
         neighborhood_size=params.neighborhood_size,
-        max_stagnation=params.optimality_max_stagnation,
         show_progress=params.show_progress,
     )
     opt_solution = opt_res.value
@@ -50,12 +50,12 @@ function solve_with_stats(mapf::MAPF; params)
 
     double_res = @timed double_search(
         mapf;
+        feasibility_timeout=params.feasibility_timeout,
+        optimality_timeout=params.optimality_timeout,
         window=params.window,
         neighborhood_size=params.neighborhood_size,
         conflict_price=params.conflict_price,
         conflict_price_increase=params.conflict_price_increase,
-        feasibility_max_stagnation=params.feasibility_max_stagnation,
-        optimality_max_stagnation=params.optimality_max_stagnation,
         show_progress=params.show_progress,
     )
     double_solution = double_res.value
@@ -71,18 +71,18 @@ function solve_with_stats(mapf::MAPF; params)
     return stats
 end
 
-function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, stay_at_arrival, params)
+function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, params)
     results_folder = joinpath(@__DIR__, "results")
     isdir(results_folder) || mkdir(results_folder)
     terrain_files = readdir(terrain_dir)
     T = length(terrain_files)
 
-    for t in 1:T
+    @threads for t in 1:T
         terrain_file = terrain_files[t]
         terrain_path = joinpath(terrain_dir, terrain_file)
         instance = replace(terrain_file, r".map$" => "")
         terrain = read_benchmark_terrain(terrain_path)
-        empty_mapf = empty_benchmark_mapf(terrain; stay_at_arrival=stay_at_arrival)
+        empty_mapf = empty_benchmark_mapf(terrain)
 
         @threads for scen_id in 1:S
             csv_path = joinpath(results_folder, "$instance-random-$scen_id.csv")
@@ -102,7 +102,6 @@ function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, stay_at_arrival,
                     scen_type="random",
                     scen_id=scen_id,
                     A=A,
-                    stay_at_arrival=stay_at_arrival,
                 )
                 stats = solve_with_stats(mapf; params=params)
                 push!(scen_results, merge(metadata, stats, params))
@@ -116,16 +115,15 @@ do_the_stuff(;
     terrain_dir=joinpath(data_dir, "mapf-map"),
     scen_random_dir=joinpath(data_dir, "mapf-scen-random", "scen-random"),
     S=25,
-    all_A=[50],
-    stay_at_arrival=true,
+    all_A=[100],
     params=(
-        coop_max_trials=20,
+        coop_timeout=10,
+        optimality_timeout=10,
+        feasibility_timeout=10,
         window=10,
-        neighborhood_size=5,
+        neighborhood_size=10,
         conflict_price=1.0,
         conflict_price_increase=2e-2,
-        feasibility_max_stagnation=100,
-        optimality_max_stagnation=100,
         show_progress=false,
     ),
 )

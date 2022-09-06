@@ -1,5 +1,6 @@
 using Base.Threads
 using Graphs
+using GridGraphs
 using MAPFBenchmarks
 using MultiAgentPathFinding
 using Random
@@ -18,17 +19,23 @@ scenario_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
 terrain = read_benchmark_terrain(terrain_path);
 scenario = read_benchmark_scenario(scenario_path, terrain_path);
 
-full_mapf = benchmark_mapf(terrain, scenario; stay_at_arrival=false)
+full_mapf = benchmark_mapf(
+    terrain,
+    scenario;
+    directions=GridGraphs.queen_directions_plus_center,
+    diag_through_corner=true,
+    stay_at_arrival=false,
+)
 
 mapf = select_agents(full_mapf, 100)
 mapf.g
 
 show_progress = true
 sol_indep = independent_dijkstra(mapf; show_progress=show_progress);
-sol_coop = cooperative_astar(mapf; show_progress=show_progress);
-sol_os = optimality_search(mapf; show_progress=show_progress);
-sol_fs = feasibility_search(mapf; show_progress=show_progress);
-sol_ds = double_search(mapf; show_progress=show_progress);
+sol_coop = repeated_cooperative_astar(mapf; coop_timeout=10, show_progress=show_progress);
+sol_os = optimality_search(mapf; coop_timeout=10, show_progress=show_progress);
+sol_fs = feasibility_search(mapf; feasibility_timeout=10, show_progress=show_progress);
+sol_ds = double_search(mapf; feasibility_timeout=10, show_progress=show_progress);
 
 !is_feasible(sol_indep, mapf)
 is_feasible(sol_coop, mapf; verbose=true)
@@ -43,10 +50,10 @@ f_fs = flowtime(sol_fs, mapf)
 f_ds = flowtime(sol_ds, mapf)
 
 @testset verbose = true "$instance-random-$scen_id" begin
-    # @test all(
-    #     scenario[a].optimal_length ≈ path_weight(sol_indep[a], mapf) for
-    #     a in 1:nb_agents(mapf)
-    # )
+    @test all(
+        scenario[a].optimal_length ≈ path_weight(sol_indep[a], mapf) for
+        a in 1:nb_agents(mapf)
+    )
     @test !is_feasible(sol_indep, mapf)
     @test is_feasible(sol_coop, mapf)
     @test is_feasible(sol_os, mapf)

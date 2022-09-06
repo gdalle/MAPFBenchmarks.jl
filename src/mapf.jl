@@ -1,11 +1,21 @@
-function empty_benchmark_mapf(terrain::Matrix{Char}; stay_at_arrival)
+function empty_benchmark_mapf(
+    terrain::Matrix{Char};
+    directions=GridGraphs.rook_directions_plus_center,
+    diag_through_corner=false,
+    stay_at_arrival=true,
+)
     active = active_cell.(terrain)
     weights = Ones{Float64}(size(active))
-    directions = GridGraphs.rook_directions_plus_center
-    diag_through_corner = false
     g = GridGraph{Int}(weights, active, directions, diag_through_corner)
-    departures, arrivals = Int[], Int[]
-    mapf = MAPF(g, departures, arrivals; stay_at_arrival=stay_at_arrival)
+    mapf = MAPF(
+        g;
+        departures=Int[],
+        arrivals=Int[],
+        departure_times=Int[],
+        vertex_conflicts=MultiAgentPathFinding.LazyVertexConflicts(),
+        edge_conflicts=MultiAgentPathFinding.LazySwappingConflicts(),
+        stay_at_arrival=stay_at_arrival,
+    )
     return mapf
 end
 
@@ -28,8 +38,8 @@ function add_benchmark_agents(mapf::MAPF, scenario::Vector{MAPFBenchmarkProblem}
     return replace_agents(mapf, departures, arrivals, departure_times)
 end
 
-function benchmark_mapf(terrain, scenario; stay_at_arrival)
-    empty_mapf = empty_benchmark_mapf(terrain; stay_at_arrival=stay_at_arrival)
+function benchmark_mapf(terrain, scenario; kwargs...)
+    empty_mapf = empty_benchmark_mapf(terrain; kwargs...)
     mapf = add_benchmark_agents(empty_mapf, scenario)
     return mapf
 end
