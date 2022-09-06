@@ -2,7 +2,6 @@ function empty_benchmark_mapf(
     terrain::Matrix{Char};
     directions=GridGraphs.rook_directions_plus_center,
     diag_through_corner=false,
-    stay_at_arrival=true,
 )
     active = active_cell.(terrain)
     weights = Ones{Float64}(size(active))
@@ -14,7 +13,6 @@ function empty_benchmark_mapf(
         departure_times=Int[],
         vertex_conflicts=MultiAgentPathFinding.LazyVertexConflicts(),
         edge_conflicts=MultiAgentPathFinding.LazySwappingConflicts(),
-        stay_at_arrival=stay_at_arrival,
     )
     return mapf
 end

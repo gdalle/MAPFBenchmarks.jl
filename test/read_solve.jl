@@ -11,7 +11,7 @@ terrain_dir = joinpath(data_dir, "mapf-map")
 scen_random_dir = joinpath(data_dir, "mapf-scen-random", "scen-random")
 
 instance = "Berlin_1_256"
-scen_id = 3
+scen_id = 1
 
 terrain_path = joinpath(terrain_dir, "$instance.map")
 scenario_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
@@ -24,7 +24,6 @@ full_mapf = benchmark_mapf(
     scenario;
     directions=GridGraphs.queen_directions_plus_center,
     diag_through_corner=true,
-    stay_at_arrival=false,
 )
 
 mapf = select_agents(full_mapf, 100)

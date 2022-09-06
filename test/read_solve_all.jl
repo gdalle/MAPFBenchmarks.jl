@@ -77,12 +77,14 @@ function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, params)
     terrain_files = readdir(terrain_dir)
     T = length(terrain_files)
 
-    @threads for t in 1:T
+    for t in 1:T
         terrain_file = terrain_files[t]
         terrain_path = joinpath(terrain_dir, terrain_file)
         instance = replace(terrain_file, r".map$" => "")
         terrain = read_benchmark_terrain(terrain_path)
         empty_mapf = empty_benchmark_mapf(terrain)
+
+        contains(instance, "orz900d") && continue
 
         @threads for scen_id in 1:S
             csv_path = joinpath(results_folder, "$instance-random-$scen_id.csv")
@@ -111,18 +113,18 @@ function do_the_stuff(; terrain_dir, scen_random_dir, S, all_A, params)
     end
 end
 
-do_the_stuff(;
+@time do_the_stuff(;
     terrain_dir=joinpath(data_dir, "mapf-map"),
     scen_random_dir=joinpath(data_dir, "mapf-scen-random", "scen-random"),
     S=25,
     all_A=[100],
     params=(
-        coop_timeout=10,
-        optimality_timeout=10,
-        feasibility_timeout=10,
+        coop_timeout=5,
+        optimality_timeout=5,
+        feasibility_timeout=5,
         window=10,
         neighborhood_size=10,
-        conflict_price=1.0,
+        conflict_price=1e-1,
         conflict_price_increase=2e-2,
         show_progress=false,
     ),
