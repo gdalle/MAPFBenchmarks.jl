@@ -2,7 +2,7 @@
 
 julia_version = "1.8.0"
 manifest_format = "2.0"
-project_hash = "1e0b08f661b189a0ae5555de506411782be37d1a"
+project_hash = "83725d46f9cc11a6ac86d3ffb7c55158cf8c857d"
 
 [[deps.ArnoldiMethod]]
 deps = ["LinearAlgebra", "Random", "StaticArrays"]
@@ -103,7 +103,7 @@ version = "1.7.2"
 deps = ["DataStructures", "FillArrays", "Graphs", "SparseArrays"]
 path = "../GridGraphs.jl"
 uuid = "dd2b58c7-5af7-4f17-9e46-57c68ac813fb"
-version = "0.8.0"
+version = "0.9.0"
 
 [[deps.Inflate]]
 git-tree-sha1 = "5cd07aab533df5170988219191dfad0519391428"

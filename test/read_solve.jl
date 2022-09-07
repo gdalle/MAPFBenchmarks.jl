@@ -22,7 +22,7 @@ scenario = read_benchmark_scenario(scenario_path, terrain_path);
 full_mapf = benchmark_mapf(
     terrain,
     scenario;
-    directions=GridGraphs.queen_directions_plus_center,
+    directions=GridGraphs.QUEEN_DIRECTIONS_PLUS_CENTER,
     diag_through_corner=true,
 )
 

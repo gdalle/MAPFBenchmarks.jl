@@ -117,7 +117,7 @@ end
     terrain_dir=joinpath(data_dir, "mapf-map"),
     scen_random_dir=joinpath(data_dir, "mapf-scen-random", "scen-random"),
     S=25,
-    all_A=[100],
+    all_A=20:20:100,
     params=(
         coop_timeout=10,
         optimality_timeout=10,

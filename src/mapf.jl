@@ -1,6 +1,6 @@
 function empty_benchmark_mapf(
     terrain::Matrix{Char};
-    directions=GridGraphs.rook_directions_plus_center,
+    directions=GridGraphs.ROOK_DIRECTIONS_PLUS_CENTER,
     diag_through_corner=false,
 )
     active = active_cell.(terrain)
