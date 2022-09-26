@@ -31,10 +31,12 @@ mapf.g
 
 show_progress = true
 sol_indep = independent_dijkstra(mapf; show_progress=show_progress);
-sol_coop = repeated_cooperative_astar(mapf; coop_timeout=10, show_progress=show_progress);
-sol_os = optimality_search(mapf; coop_timeout=10, show_progress=show_progress);
-sol_fs = feasibility_search(mapf; feasibility_timeout=10, show_progress=show_progress);
-sol_ds = double_search(mapf; feasibility_timeout=10, show_progress=show_progress);
+sol_coop = repeated_cooperative_astar(mapf; show_progress=show_progress);
+sol_os, stats_os = optimality_search(mapf; show_progress=show_progress);
+sol_fs, stats_fs = feasibility_search(
+    mapf; feasibility_timeout=10, show_progress=show_progress
+);
+sol_ds, stats_ds = double_search(mapf; feasibility_timeout=10, show_progress=show_progress);
 
 !is_feasible(sol_indep, mapf)
 is_feasible(sol_coop, mapf; verbose=true)

@@ -13,6 +13,7 @@ function empty_benchmark_mapf(
         departure_times=Int[],
         vertex_conflicts=MultiAgentPathFinding.LazyVertexConflicts(),
         edge_conflicts=MultiAgentPathFinding.LazySwappingConflicts(),
+        flexible_departure=true
     )
     return mapf
 end
