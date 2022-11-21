@@ -1,65 +1,44 @@
-"""
-    BenchmarkMAPF = MAPF{SparseGridGraph{Int64,Float64}}
-
-Concrete subtype of `MultiAgentPathFinding.MAPF` designed for the benchmark instances of Sturtevant.
-"""
-const BenchmarkMAPF = MAPF{SparseGridGraph{Int64,Float64}}
-
-is_passable(c::Char) = (c == '.') || (c == 'G') || (c == 'S')
-
-"""
-    benchmark_mapf(map_path, scenario_path[; buckets])
-"""
-function benchmark_mapf(
-    map_path::AbstractString, scenario_path::AbstractString; buckets=1:10
+function empty_benchmark_mapf(
+    terrain::Matrix{Char};
+    directions=GridGraphs.ROOK_DIRECTIONS_PLUS_CENTER,
+    diag_through_corner=false,
 )
-    # Read files
-    map_matrix = read_benchmark_map(map_path)
-    scenario = read_benchmark_scenario(scenario_path, map_path)
-    scen = joinpath(splitpath(scenario_path)[(end - 1):end]...)
-    # Create graph
-    mask = map(is_passable, map_matrix)
-    weights = zeros(Float64, size(mask))
-    weights[mask] .= 1.0
-    g = SparseGridGraph(weights, mask)
-    # Add sources and destinations
-    ccs = weakly_connected_components(g)
-    k_largest = argmax(length.(ccs))
-    sources, destinations = Int[], Int[]
-    for pb in scenario
-        problem = pb.index
-        pb.bucket in buckets || continue
-        is, js = pb.start_i, pb.start_j
-        id, jd = pb.goal_i, pb.goal_j
-        s = GridGraphs.node_index(g, is, js)
-        d = GridGraphs.node_index(g, id, jd)
+    active = active_cell.(terrain)
+    weights = Ones{Float64}(size(active))
+    g = GridGraph{Int}(weights, active, directions, diag_through_corner)
+    mapf = MAPF(
+        g;
+        departures=Int[],
+        arrivals=Int[],
+        departure_times=Int[],
+        vertex_conflicts=MultiAgentPathFinding.LazyVertexConflicts(),
+        edge_conflicts=MultiAgentPathFinding.LazySwappingConflicts(),
+        flexible_departure=true
+    )
+    return mapf
+end
 
-        k_s, k_d = -1, -2
-        for (k, cc) in enumerate(ccs)
-            if insorted(s, cc)
-                k_s = k
-            end
-            if insorted(d, cc)
-                k_d = k
-            end
-            if k_s != -1 && k_d != -2
-                break
-            end
-        end
-        if !active_vertex(g, s)
-            @info "Inactive start vertex" scen problem (is, js)
-        elseif !active_vertex(g, d)
-            @info "Inactive goal vertex" scen problem (id, jd)
-        elseif k_s != k_d
-            @info "Start and goal vertex in different connected components" scen problem (is, js) (id, jd) k_s k_d
-        # elseif k_s != k_largest || k_d != k_largest
-        #     @info "Start and goal vertex in a small connected component" scen problem (is, js) (id, jd)
-        else
-            push!(sources, s)
-            push!(destinations, d)
-        end
+function add_benchmark_agents(mapf::MAPF, scenario::Vector{MAPFBenchmarkProblem})
+    A = length(scenario)
+    departures = Vector{Int}(undef, A)
+    arrivals = Vector{Int}(undef, A)
+    for a in 1:A
+        problem = scenario[a]
+        is, js = problem.start_i, problem.start_j
+        id, jd = problem.goal_i, problem.goal_j
+        s = GridGraphs.coord_to_index(mapf.g, is, js)
+        d = GridGraphs.coord_to_index(mapf.g, id, jd)
+        departures[a] = s
+        arrivals[a] = d
     end
-    # Create MAPF
-    mapf = MAPF(g, sources, destinations)
+    @assert length(unique(departures)) == length(departures)
+    @assert length(unique(arrivals)) == length(arrivals)
+    departure_times = fill(1, A)
+    return replace_agents(mapf, departures, arrivals, departure_times)
+end
+
+function benchmark_mapf(terrain, scenario; kwargs...)
+    empty_mapf = empty_benchmark_mapf(terrain; kwargs...)
+    mapf = add_benchmark_agents(empty_mapf, scenario)
     return mapf
 end

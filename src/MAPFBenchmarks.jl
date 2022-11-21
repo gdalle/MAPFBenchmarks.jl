@@ -1,21 +1,28 @@
 module MAPFBenchmarks
 
 using Base.Threads
-using ColorTypes
+using Colors
+using FillArrays
 using Graphs
 using GridGraphs
 using MultiAgentPathFinding
-using HTTP
-using ZipFile
+using Requires
 
-include("read.jl")
+include("cells.jl")
+include("problem.jl")
 include("mapf.jl")
-include("plot.jl")
-include("download.jl")
+include("read.jl")
 
-export read_benchmark_map, read_benchmark_scenario
-export display_benchmark_map
-export benchmark_mapf
-export download_benchmark_mapf
+export cell_color, active_cell
+export MAPFBenchmarkProblem
+export empty_benchmark_mapf, add_benchmark_agents, benchmark_mapf
+export read_benchmark_terrain, read_benchmark_scenario, read_benchmark_mapf
+
+function __init__()
+    @require GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a" begin
+        using .GLMakie
+        include("plot.jl")
+    end
+end
 
 end

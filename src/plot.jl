@@ -1,31 +1,14 @@
-"""
-    display_benchmark_mapf(map_matrix::Matrix{Char})
-"""
-function display_benchmark_map(map_matrix::Matrix{Char})
-    height, width = size(map_matrix)
-    map_colors = Matrix{RGB}(undef, height, width)
-    for i in 1:height, j in 1:width
-        c = map_matrix[i, j]
-        if c == '.'  # empty => white
-            x = RGB(1.0, 1.0, 1.0)
-        elseif c == 'G'  # empty => white
-            x = RGB(1.0, 1.0, 1.0)
-        elseif c == 'S'  # shallow water => brown
-            x = RGB(0.4, 0.4, 0.0)
-        elseif c == 'W'  # water => blue
-            x = RGB(0.0, 0.0, 1.0)
-        elseif c == 'T'  # trees => green
-            x = RGB(0.0, 0.7, 0.0)
-        elseif c == '@'  # wall => black
-            x = RGB(0.0, 0.0, 0.0)
-        elseif c == 'O'  # wall => black
-            x = RGB(0.0, 0.0, 0.0)
-        elseif c == 'H'  # here => red
-            x = RGB(1.0, 0.0, 0.0)
-        else  # ? => black
-            x = RGB(0.0, 0.0, 0.0)
-        end
-        map_colors[i, j] = x
-    end
-    return map_colors
+function plot_benchmark_path(terrain::Matrix{Char}, mapf::MAPF, timed_path::TimedPath)
+    h, w = GridGraphs.height(mapf.g), GridGraphs.width(mapf.g)
+    coords = [GridGraphs.index_to_coord(mapf.g, v) for v in timed_path.path]
+    img = cell_color.(terrain)
+    f = Figure()
+    ax = Axis(f[1, 1]; aspect=DataAspect())
+    image!(ax, rotr90(img); interpolate=false)
+    is = first.(coords) .- 0.5
+    js = last.(coords) .- 0.5
+    xs = js
+    ys = h .- is
+    Makie.scatter!(ax, xs, ys)
+    return f
 end
