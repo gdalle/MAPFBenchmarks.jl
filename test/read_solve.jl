@@ -8,7 +8,7 @@ using Test
 
 data_dir = joinpath(@__DIR__, "..", "data")
 terrain_dir = joinpath(data_dir, "mapf-map")
-scen_random_dir = joinpath(data_dir, "mapf-scen-random", "scen-random")
+scen_random_dir = joinpath(data_dir, "scen-random")
 
 instance = "Berlin_1_256"
 scen_id = 1
