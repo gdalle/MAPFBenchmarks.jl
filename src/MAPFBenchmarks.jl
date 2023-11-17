@@ -1,18 +1,31 @@
+"""
+    MAPFBenchmarks
+
+Interface between the package MultiAgentPathFinding.jl (<https://github.com/gdalle/MultiAgentPathFinding.jl>) and Sturtevant's MAPF benchmarks (<https://movingai.com/benchmarks/mapf.html>).
+
+The data files will be downloaded automatically when you run the core function [`read_benchmark_mapf`](@ref).
+See <https://movingai.com/benchmarks/formats.html> for the description of their format.
+"""
 module MAPFBenchmarks
 
 using Base: @kwdef
-using DataDeps
-using DocStringExtensions
+using Colors: @colorant_str
+using DataDeps: DataDep, register, @datadep_str, unpack
+using DocStringExtensions: TYPEDFIELDS
 using FillArrays: Ones
 using GridGraphs: GridGraph, coord_to_index, QUEEN_DIRECTIONS_PLUS_CENTER
 using MultiAgentPathFinding: MAPF, LazyVertexConflicts, LazySwappingConflicts
 
 export MAPFBenchmarkProblem
+export benchmark_graph
 export benchmark_mapf
 export read_benchmark_mapf
+export cell_color
 
 """
     MAPFBenchmarkProblem
+
+Encode one agent of a MAPF scenario.
 
 # Fields
 
@@ -31,29 +44,25 @@ $(TYPEDFIELDS)
     optimal_length::Float64
 end
 
-function active_cell(c::Char)
-    return (c == '.') || (c == 'G') || (c == 'S')
-end
+active_cell(c::Char) = (c == '.') || (c == 'G') || (c == 'S')
 
 """
-    benchmark_mapf(
-        map_matrix::Matrix{Char},
-        scenario::Vector{MAPFBenchmarkProblem};
+    benchmark_graph(
+        map_matrix::Matrix{Char};
         directions=QUEEN_DIRECTIONS_PLUS_CENTER,
         nb_corners_for_diag=2,
         pythagoras_cost_for_diag=true,
-        flexible_departure=false,
     )
 
-Create a `MultiAgentPathFinding.MAPF` object from the combination of a map (corresponding to a grid graph) and a scenario (corresponding to a set of agents).
+Create a grid graph from a map specified as a matrix of characters.
+
+Returns a `GridGraphs.GridGraph`.
 """
-function benchmark_mapf(
-    map_matrix::Matrix{Char},
-    scenario::Vector{MAPFBenchmarkProblem};
+function benchmark_graph(
+    map_matrix::Matrix{Char};
     directions=QUEEN_DIRECTIONS_PLUS_CENTER,
     nb_corners_for_diag=2,
     pythagoras_cost_for_diag=true,
-    flexible_departure=true,
 )
     vertex_weights = Ones{Float64}(size(map_matrix))
     vertex_activities = active_cell.(map_matrix)
@@ -64,7 +73,23 @@ function benchmark_mapf(
         nb_corners_for_diag,
         pythagoras_cost_for_diag,
     )
+    return g
+end
 
+"""
+    benchmark_mapf(
+        g::GridGraph,
+        scenario::Vector{MAPFBenchmarkProblem};
+        flexible_departure=false
+    )
+
+Create a MAPF instance from a grid graph and a scenario (i.e. a set of agents).
+
+Returns a `MultiAgentPathFinding.MAPF`.
+"""
+function benchmark_mapf(
+    g::GridGraph, scenario::Vector{MAPFBenchmarkProblem}; flexible_departure=true
+)
     A = length(scenario)
     departures = Vector{Int}(undef, A)
     arrivals = Vector{Int}(undef, A)
@@ -94,6 +119,13 @@ function benchmark_mapf(
     return mapf
 end
 
+"""
+    read_benchmark_map(map_name::AbstractString)
+
+Read a map matrix from a text file.
+
+Returns a `Matrix{Char}`.
+"""
 function read_benchmark_map(map_name::AbstractString)
     map_path = joinpath(datadep"mapf-map", map_name)
     lines = open(map_path, "r") do file
@@ -113,6 +145,13 @@ function read_benchmark_map(map_name::AbstractString)
     return map_matrix
 end
 
+"""
+    read_benchmark_scenario(scenario_name::AbstractString, map_name::AbstractString)
+
+Read a scenario from a text file, and check that it corresponds to a given map.
+
+Returns a `Vector{MAPFBenchmarkProblem}`.
+"""
 function read_benchmark_scenario(scenario_name::AbstractString, map_name::AbstractString)
     scenario_path = ""
     if occursin("random", scenario_name)
@@ -160,23 +199,75 @@ function read_benchmark_scenario(scenario_name::AbstractString, map_name::Abstra
 end
 
 """
-    read_benchmark_mapf(map_name, scenario_name; kwargs...)
+    read_benchmark_mapf(
+        map_name::AbstractString,
+        scenario_name::AbstractString;
+        directions=QUEEN_DIRECTIONS_PLUS_CENTER,
+        nb_corners_for_diag=2,
+        pythagoras_cost_for_diag=true,
+        flexible_departure=false,
+    )
 
-Read a map and scenario from files, then pass them to [`benchmark_mapf`](@ref) along with the keyword arguments.
+Create a MAPF instance by reading a map (`"something.map"`) and scenario (`"something.scen"`) from files.
+
+Returns a `MultiAgentPathFinding.MAPF`.
 
 # Example
 
-```
-read_benchmark_mapf("Berlin_1_256.map", "Berlin_1_256-random-1.scen")
+```jldoctest
+using Graphs, MAPFBenchmarks, MultiAgentPathFinding
+mapf = read_benchmark_mapf("Berlin_1_256.map", "Berlin_1_256-random-1.scen")
+nv(mapf.g), nb_agents(mapf)
+
+# output
+
+(65536, 1000)
 ```
 """
 function read_benchmark_mapf(
-    map_name::AbstractString, scenario_name::AbstractString; kwargs...
+    map_name::AbstractString,
+    scenario_name::AbstractString;
+    directions=QUEEN_DIRECTIONS_PLUS_CENTER,
+    nb_corners_for_diag=2,
+    pythagoras_cost_for_diag=true,
+    flexible_departure=false,
 )
     map_matrix = read_benchmark_map(map_name)
     scenario = read_benchmark_scenario(scenario_name, map_name)
-    mapf = benchmark_mapf(map_matrix, scenario; kwargs...)
+    g = benchmark_graph(
+        map_matrix; directions, nb_corners_for_diag, pythagoras_cost_for_diag
+    )
+    mapf = benchmark_mapf(g, scenario; flexible_departure)
     return mapf
+end
+
+"""
+    cell_color(c::Char)
+
+Give a color object corresponding to the type of cell.
+
+To visualize a map in VSCode, just run `cell_color.(map_matrix)` in the REPL.
+"""
+function cell_color(c::Char)
+    if c == '.'  # empty => white
+        return colorant"white"
+    elseif c == 'G'  # empty => white
+        return colorant"white"
+    elseif c == 'S'  # shallow water => brown
+        return colorant"brown"
+    elseif c == 'W'  # water => blue
+        return colorant"blue"
+    elseif c == 'T'  # trees => green
+        return colorant"green"
+    elseif c == '@'  # wall => black
+        return colorant"black"
+    elseif c == 'O'  # wall => black
+        return colorant"black"
+    elseif c == 'H'  # here => red
+        return colorant"red"
+    else  # ? => black
+        return colorant"black"
+    end
 end
 
 function __init__()

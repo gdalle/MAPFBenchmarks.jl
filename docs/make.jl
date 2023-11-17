@@ -1,5 +1,9 @@
 using MAPFBenchmarks
+using Graphs
+using MultiAgentPathFinding
 using Documenter
+
+ENV["DATADEPS_ALWAYS_ACCEPT"] = true
 
 DocMeta.setdocmeta!(MAPFBenchmarks, :DocTestSetup, :(using MAPFBenchmarks); recursive=true)
 
