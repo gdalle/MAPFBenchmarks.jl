@@ -5,6 +5,10 @@ using Documenter
 
 ENV["DATADEPS_ALWAYS_ACCEPT"] = true
 
+datadep"mapf-map"
+datadep"mapf-scen-even"
+datadep"mapf-scen-random"
+
 DocMeta.setdocmeta!(MAPFBenchmarks, :DocTestSetup, :(using MAPFBenchmarks); recursive=true)
 
 makedocs(;
