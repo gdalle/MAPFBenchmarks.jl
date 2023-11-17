@@ -1,30 +1,13 @@
-using Base.Threads
-using Graphs
-using GridGraphs
 using MAPFBenchmarks
 using MultiAgentPathFinding
 using Random
 using Test
 
-data_dir = joinpath(@__DIR__, "..", "data")
-terrain_dir = joinpath(data_dir, "mapf-map")
-scen_random_dir = joinpath(data_dir, "scen-random")
+map_name = "Berlin_1_256.map"
+scenario_name = "Berlin_1_256-even-1.scen"
 
-instance = "Berlin_1_256"
-scen_id = 1
-
-terrain_path = joinpath(terrain_dir, "$instance.map")
-scenario_path = joinpath(scen_random_dir, "$instance-random-$scen_id.scen")
-
-terrain = read_benchmark_terrain(terrain_path);
-scenario = read_benchmark_scenario(scenario_path, terrain_path);
-
-full_mapf = benchmark_mapf(
-    terrain,
-    scenario;
-    directions=GridGraphs.QUEEN_DIRECTIONS_PLUS_CENTER,
-    diag_through_corner=true,
-)
+scenario = MAPFBenchmarks.read_benchmark_scenario(scenario_name, map_name)
+full_mapf = read_benchmark_mapf(map_name, scenario_name; flexible_departure=true)
 
 mapf = select_agents(full_mapf, 100)
 mapf.g
@@ -50,7 +33,7 @@ f_os = flowtime(sol_os, mapf)
 f_fs = flowtime(sol_fs, mapf)
 f_ds = flowtime(sol_ds, mapf)
 
-@testset verbose = true "$instance-random-$scen_id" begin
+@testset begin
     @test all(
         scenario[a].optimal_length ≈ path_weight(sol_indep[a], mapf) for
         a in 1:nb_agents(mapf)
