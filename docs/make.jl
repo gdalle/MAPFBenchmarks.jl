@@ -1,3 +1,4 @@
+using DataDeps
 using MAPFBenchmarks
 using Graphs
 using MultiAgentPathFinding
