@@ -1,3 +1,5 @@
+> This package is deprecated, the functionality is now part of [MultiAgentPathFinding.jl](https://github.com/gdalle/MultiAgentPathFinding.jl) itself
+
 # MAPFBenchmarks
 
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://gdalle.github.io/MAPFBenchmarks.jl/dev)
